@@ -10,33 +10,33 @@ import torch.optim as optim
 
 from setting import *
 
-vgg16f = models.vgg16(pretrained=True)
+vgg19f = models.vgg19(pretrained=True)
 
 # Freeze training for all "features" layers
-for param in vgg16f.features.parameters():
+for param in vgg19f.features.parameters():
     param.requires_grad = False
 
-n_inputs = vgg16f.classifier[6].in_features
+n_inputs = vgg19f.classifier[6].in_features
 
 # add last linear layer
 # new layers automatically have requires_grad = True
 last_layer = nn.Linear(n_inputs, len(classes))
 
-vgg16f.classifier[6] = last_layer
+vgg19f.classifier[6] = last_layer
 
 if train_on_gpu:
-    vgg16f.cuda()
+    vgg19f.cuda()
 
-vgg16f.load_state_dict(torch.load(os.path.join(save_dir, 'vgg16f.pth')))
+vgg19f.load_state_dict(torch.load(os.path.join(save_dir, 'vgg19f.pth')))
 
-vgg16f.eval() # eval mode
+vgg19f.eval() # eval mode
 
 # specify loss function (categorical cross-entropy)
 criterion = nn.CrossEntropyLoss()
 
 # specify optimizer (stochastic gradient descent) and learning rate = 0.001
-optimizer = optim.SGD(vgg16f.classifier.parameters(), lr=0.001)
-
+# optimizer = optim.SGD(vgg19f.classifier.parameters(), lr=0.001)
+optimizer = optim.SGD(vgg19f.classifier.parameters(), lr=0.001, momentum=0.9)
 
 # track test loss
 # over n fruits
@@ -52,7 +52,7 @@ for data, target in test_loader:
     if train_on_gpu:
         data, target = data.cuda(), target.cuda()
     # forward pass: compute predicted outputs by passing inputs to the model
-    output = vgg16f(data)
+    output = vgg19f(data)
     # calculate the batch loss
     loss = criterion(output, target)
     # update  test loss
